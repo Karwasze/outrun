@@ -2,8 +2,6 @@ use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_TYP
 use serde_json::Value;
 use std::collections::HashMap;
 
-// const CLIENT_TOKEN: &str = "Basic MjY2YjU2NzA5MTU1NDc4OGEzNDY0OTcwM2E4YTcwODk6YTNjNDMzMzA3MjdiNGY2ZWEyOTI4MWM5MjFmNjA4MDY=";
-
 fn construct_headers(token: String) -> HeaderMap {
     let mut headers = HeaderMap::new();
     headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
