@@ -1,8 +1,8 @@
-#Outrun
+# Outrun
 
 Outrun is a Telegram bot that assigns you a random point of interest based on your location.
 
-##Setup
+## Setup
 ### Dependencies
 * Docker (tested on Docker Engine 19.03)
 * Rust nightly (tested on 1.45)
