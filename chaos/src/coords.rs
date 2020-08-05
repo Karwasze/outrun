@@ -2,12 +2,20 @@ extern crate rand;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::f64::consts;
+use crate::parameters;
+use crate::parameters::Parameters;
 const EARTH_RADIUS: f64 = 6371000.0;
 
 #[derive(Serialize, Deserialize)]
 pub struct Coords {
     pub lat: f64,
     pub long: f64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ResultCoords {
+    coords: Coords,
+    parameters: Parameters,
 }
 
 pub fn point_at_distance(coords: Coords, distance: f64) -> Coords {
@@ -43,4 +51,19 @@ pub fn random_point(coords: Coords, distance: f64) -> Coords {
     let random_distance = rng.gen::<f64>().sqrt() * distance;
     let result = point_at_distance(coords, random_distance);
     result
+}
+
+pub fn get_point(lat: f64, long: f64, distance: f64) -> String {
+    let input = Coords {
+        lat: lat,
+        long: long,
+    };
+    let rnd_point = random_point(input, distance);
+    let point_parameters = parameters::generate_parameters();
+    let result = ResultCoords {
+        coords: rnd_point,
+        parameters: point_parameters,
+    };
+    let json_result = serde_json::to_string(&result).unwrap();
+    json_result
 }
