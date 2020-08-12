@@ -13,26 +13,47 @@ fn get_point(lat: f64, long: f64, distance: f64) -> String {
     coords::get_point(lat, long, distance)
 }
 
-#[get("/update_last_location?<telegram_id>&<lat>&<long>&<distance>")]
-fn update_last_location(telegram_id: String, lat: f64, long: f64, distance: f64) -> String {
-    
+#[post("/update_last_location?<telegram_id>&<lat>&<long>&<distance>")]
+fn update_last_location(telegram_id: String, lat: f64, long: f64, distance: f64) -> () {
     match db::create_user_if_doesnt_exist(&telegram_id) {
         Ok(()) => println!("Created user or already exists"),
         Err(e) => println!("Error: {}", e),
     }
-    db::update_last_location(&telegram_id, lat, long, distance).unwrap()
+    match db::update_last_location(&telegram_id, lat, long, distance) {
+        Ok(()) => println!("Updated location"),
+        Err(e) => println!("Error: {}", e),
+    }
 }
 
 #[get("/get_xp?<telegram_id>")]
 fn get_xp(telegram_id: String) -> String {
+    match db::create_user_if_doesnt_exist(&telegram_id) {
+        Ok(()) => println!("Created user or already exists"),
+        Err(e) => println!("Error: {}", e),
+    }
     db::get_xp(&telegram_id).unwrap()
 }
 
-#[get("/add_xp?<telegram_id>&<xp_amount>")]
-fn add_xp(telegram_id: String, xp_amount: i32) -> String {
-    db::add_xp(&telegram_id, xp_amount).unwrap()
+#[post("/add_xp?<telegram_id>&<xp_amount>")]
+fn add_xp(telegram_id: String, xp_amount: i32) -> () {
+    match db::create_user_if_doesnt_exist(&telegram_id) {
+        Ok(()) => println!("Created user or already exists"),
+        Err(e) => println!("Error: {}", e),
+    }
+    match db::add_xp(&telegram_id, xp_amount) {
+        Ok(()) => println!("Added xp"),
+        Err(e) => println!("Error: {}", e),
+    }
 }
 
+#[get("/get_last_location?<telegram_id>")]
+fn get_last_location(telegram_id: String) -> String {
+    match db::create_user_if_doesnt_exist(&telegram_id) {
+        Ok(()) => println!("Created user or already exists"),
+        Err(e) => println!("Error: {}", e),
+    }
+    db::get_last_location(&telegram_id).unwrap()
+}
 #[get("/")]
 fn index() -> &'static str {
     "Up and running!"
@@ -45,6 +66,6 @@ fn main() {
         Err(e) => println!("Error: {}", e),
     }
     rocket::ignite()
-        .mount("/", routes![index, get_point, get_xp, add_xp, update_last_location])
+        .mount("/", routes![index, get_point, get_xp, add_xp, update_last_location, get_last_location])
         .launch();
 }
