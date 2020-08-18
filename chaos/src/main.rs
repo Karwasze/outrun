@@ -7,6 +7,8 @@ mod parameters;
 mod db;
 extern crate dotenv;
 use dotenv::dotenv;
+use rocket_contrib::json::Json;
+use crate::db::User;
 
 #[get("/coords?<lat>&<long>&<distance>")]
 fn get_point(lat: f64, long: f64, distance: f64) -> String {
@@ -54,6 +56,18 @@ fn get_last_location(telegram_id: String) -> String {
     }
     db::get_last_location(&telegram_id).unwrap()
 }
+
+#[post("/users", data = "<user>")]
+fn create_user(user: Json<User>) -> String { 
+    println!("{:?}", user);
+    db::create_user(user).unwrap()
+}
+
+#[post("/login", data = "<user>")]
+fn login_user(user: Json<User>) -> String { 
+    println!("{:?}", user);
+    db::login_user(user).unwrap()
+}
 #[get("/")]
 fn index() -> &'static str {
     "Up and running!"
@@ -66,6 +80,6 @@ fn main() {
         Err(e) => println!("Error: {}", e),
     }
     rocket::ignite()
-        .mount("/", routes![index, get_point, get_xp, add_xp, update_last_location, get_last_location])
+        .mount("/", routes![index, get_point, get_xp, add_xp, update_last_location, get_last_location, create_user, login_user])
         .launch();
 }

@@ -1,5 +1,21 @@
 use postgres::{Client, NoTls, Error};
 use serde::{Deserialize, Serialize};
+use rocket_contrib::json::Json;
+use bcrypt::{hash, verify};
+use std::error::Error as StdError;
+use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
+extern crate bcrypt;
+
+const HASHING_COST: u32 = 4;
+const TOKEN_SECRET: &[u8] = b"TRNVLDT";
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: String,
+    company: String,
+    exp: usize,
+}
+
 #[derive(Serialize, Deserialize)]
 struct LastLocation {
     lat: f64,
@@ -12,12 +28,22 @@ struct EmptyResult {
     err: bool,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct User {
+    username: String,
+    password: String,
+    email: Option<String>,
+}
+
 pub fn init_db() -> Result<(), Error> {
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
     client.batch_execute("
     CREATE TABLE IF NOT EXISTS users (
         id      SERIAL PRIMARY KEY,
         telegram_id    VARCHAR(20) UNIQUE,
+        username    TEXT UNIQUE,
+        password    TEXT,
+        email   TEXT,
         experience      INTEGER,
         lat    DOUBLE PRECISION,
         long    DOUBLE PRECISION,
@@ -85,4 +111,45 @@ pub fn get_last_location(telegram_id: &str) -> Result<String, Error> {
         }; 
         Ok(serde_json::to_string(&result).unwrap())
     }
+}
+
+
+pub fn create_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
+    let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
+    let username = &user.username;
+    let email = &user.email.as_ref().unwrap();
+    let row = client.query_opt("SELECT username FROM users WHERE username = $1", &[&username])?;
+    match row {
+        Some(_row) => {
+            return Ok(String::from("User already exists"))
+        }
+        None => (),
+    }
+    let password = hash(&user.password, HASHING_COST)?;
+    client.execute(
+        "INSERT INTO users (username, password, email) VALUES ($1, $2, $3) ON CONFLICT (username) DO NOTHING",
+        &[&username, &password, &email],
+    )?;
+    Ok(String::from("User created"))
+}
+
+pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
+    let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
+    let username = &user.username;
+    let password = hash(&user.password, HASHING_COST)?;
+    
+    let row = client.query_opt("SELECT username FROM users WHERE username = $1 AND password = $2", &[&username, &password])?;
+    match row {
+        Some(_row) => {
+            return Ok(String::from("Login successful"))
+        }
+        None => (),
+    }
+
+    let my_claims = Claims { sub: "b@b.com".to_owned(), company: "ACME".to_owned(), exp: 10000000000 };
+    let token = match encode(&Header::default(), &my_claims, &EncodingKey::from_secret(TOKEN_SECRET)) {
+        Ok(t) => t,
+        Err(_) => "Error while creating token".to_string()
+    };
+    Ok(token)
 }
