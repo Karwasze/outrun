@@ -1,4 +1,4 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+#![feature(proc_macro_hygiene, decl_macro, never_type)]
 #[macro_use]
 extern crate rocket;
 mod coords;
@@ -11,12 +11,12 @@ use rocket_contrib::json::Json;
 use crate::db::User;
 
 #[get("/coords?<lat>&<long>&<distance>")]
-fn get_point(lat: f64, long: f64, distance: f64) -> String {
+fn get_point(lat: f64, long: f64, distance: f64, _key: db::ApiKey) -> String {
     coords::get_point(lat, long, distance)
 }
 
 #[post("/update_last_location?<telegram_id>&<lat>&<long>&<distance>")]
-fn update_last_location(telegram_id: String, lat: f64, long: f64, distance: f64) -> () {
+fn update_last_location(telegram_id: String, lat: f64, long: f64, distance: f64, _key: db::ApiKey) -> () {
     match db::create_user_if_doesnt_exist(&telegram_id) {
         Ok(()) => println!("Created user or already exists"),
         Err(e) => println!("Error: {}", e),
@@ -28,7 +28,7 @@ fn update_last_location(telegram_id: String, lat: f64, long: f64, distance: f64)
 }
 
 #[get("/get_xp?<telegram_id>")]
-fn get_xp(telegram_id: String) -> String {
+fn get_xp(telegram_id: String, _key: db::ApiKey) -> String {
     match db::create_user_if_doesnt_exist(&telegram_id) {
         Ok(()) => println!("Created user or already exists"),
         Err(e) => println!("Error: {}", e),
@@ -37,7 +37,7 @@ fn get_xp(telegram_id: String) -> String {
 }
 
 #[post("/add_xp?<telegram_id>&<xp_amount>")]
-fn add_xp(telegram_id: String, xp_amount: i32) -> () {
+fn add_xp(telegram_id: String, xp_amount: i32, _key: db::ApiKey) -> () {
     match db::create_user_if_doesnt_exist(&telegram_id) {
         Ok(()) => println!("Created user or already exists"),
         Err(e) => println!("Error: {}", e),
@@ -49,7 +49,7 @@ fn add_xp(telegram_id: String, xp_amount: i32) -> () {
 }
 
 #[get("/get_last_location?<telegram_id>")]
-fn get_last_location(telegram_id: String) -> String {
+fn get_last_location(telegram_id: String, _key: db::ApiKey) -> String {
     match db::create_user_if_doesnt_exist(&telegram_id) {
         Ok(()) => println!("Created user or already exists"),
         Err(e) => println!("Error: {}", e),

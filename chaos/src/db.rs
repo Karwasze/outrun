@@ -1,13 +1,16 @@
 use postgres::{Client, NoTls, Error};
 use serde::{Deserialize, Serialize};
 use rocket_contrib::json::Json;
-use bcrypt::{hash, verify};
+use bcrypt::hash;
 use std::error::Error as StdError;
-use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
+use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey};
+use rocket::request::{self, Request, FromRequest};
+use rocket::Outcome;
+use rocket::http::Status;
+
 extern crate bcrypt;
 
 const HASHING_COST: u32 = 4;
-const TOKEN_SECRET: &[u8] = b"TRNVLDT";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
@@ -33,6 +36,39 @@ pub struct User {
     username: String,
     password: String,
     email: Option<String>,
+}
+
+#[derive(Debug)]
+pub enum ApiKeyError {
+    Missing,
+    Invalid,
+}
+
+pub struct ApiKey(pub String);
+
+fn is_valid(key: &str) -> bool {
+    let token_secret = dotenv::var("TOKEN_SECRET").unwrap();
+    let token_secret = token_secret.as_bytes();
+    let key = &key[7..]; //skipping bearer 
+    let validation = Validation { sub: Some("outrun".to_string()), ..Validation::default() };
+    let token_data = match decode::<Claims>(&key, &DecodingKey::from_secret(token_secret), &validation) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+    token_data
+}
+
+impl<'a, 'r> FromRequest<'a, 'r> for ApiKey {
+    type Error = ApiKeyError;
+
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
+        let keys = request.headers().get_one("Authorization");
+        match keys {
+            Some(i) if is_valid(i) => Outcome::Success(ApiKey(i.to_string())),
+            Some(_) => Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid)),
+            None => Outcome::Failure((Status::BadRequest, ApiKeyError::Missing)),
+        }
+    }
 }
 
 pub fn init_db() -> Result<(), Error> {
@@ -117,7 +153,10 @@ pub fn get_last_location(telegram_id: &str) -> Result<String, Error> {
 pub fn create_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
     let username = &user.username;
-    let email = &user.email.as_ref().unwrap();
+    let email = &user.email;
+    let empty_mail = &String::new();
+    let email = email.as_ref().unwrap_or(empty_mail);
+
     let row = client.query_opt("SELECT username FROM users WHERE username = $1", &[&username])?;
     match row {
         Some(_row) => {
@@ -134,6 +173,9 @@ pub fn create_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
 }
 
 pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
+    let token_secret = dotenv::var("TOKEN_SECRET").unwrap();
+    let token_secret = token_secret.as_bytes();
+
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
     let username = &user.username;
     let password = hash(&user.password, HASHING_COST)?;
@@ -146,8 +188,8 @@ pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
         None => (),
     }
 
-    let my_claims = Claims { sub: "b@b.com".to_owned(), company: "ACME".to_owned(), exp: 10000000000 };
-    let token = match encode(&Header::default(), &my_claims, &EncodingKey::from_secret(TOKEN_SECRET)) {
+    let my_claims = Claims { sub: "outrun".to_owned(), company: "outrun".to_owned(), exp: 10000000000 };
+    let token = match encode(&Header::default(), &my_claims, &EncodingKey::from_secret(token_secret)) {
         Ok(t) => t,
         Err(_) => "Error while creating token".to_string()
     };
