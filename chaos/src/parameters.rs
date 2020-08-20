@@ -3,6 +3,7 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use crate::spotify;
 
+
 #[derive(Serialize, Deserialize)]
 pub struct Parameters {
     pub name: String,

@@ -76,7 +76,6 @@ pub fn init_db() -> Result<(), Error> {
     client.batch_execute("
     CREATE TABLE IF NOT EXISTS users (
         id      SERIAL PRIMARY KEY,
-        telegram_id    VARCHAR(20) UNIQUE,
         username    TEXT UNIQUE,
         password    TEXT,
         email   TEXT,
@@ -89,47 +88,36 @@ pub fn init_db() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn create_user_if_doesnt_exist(telegram_id: &str) -> Result<(), Error> {
+pub fn get_xp(username: &str) -> Result<String, Error> {
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
-    let experience = 0;
-
-    client.execute(
-        "INSERT INTO users (telegram_id, experience) VALUES ($1, $2) ON CONFLICT (telegram_id) DO NOTHING",
-        &[&telegram_id, &experience],
-    )?;
-    Ok(())
-}
-
-pub fn get_xp(telegram_id: &str) -> Result<String, Error> {
-    let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
-    let row = client.query_one("SELECT experience FROM users WHERE telegram_id = $1", &[&telegram_id])?;
+    let row = client.query_one("SELECT experience FROM users WHERE username = $1", &[&username])?;
     let experience: i32 = row.get("experience");
     let experience = experience.to_string();
     Ok(experience)
 }
 
-pub fn add_xp(telegram_id: &str, xp_amount: i32) -> Result<(), Error> {
+pub fn add_xp(username: &str, xp_amount: i32) -> Result<(), Error> {
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
-    let row = client.query_one("SELECT experience FROM users WHERE telegram_id = $1", &[&telegram_id])?;
+    let row = client.query_one("SELECT experience FROM users WHERE username = $1", &[&username])?;
     let experience: i32 = row.get("experience");
     let experience = experience + xp_amount;
     client.execute(
-        "UPDATE users SET experience = $1 WHERE telegram_id = $2",&[&experience, &telegram_id]
+        "UPDATE users SET experience = $1 WHERE username = $2",&[&experience, &username]
     )?;
     Ok(())
 }
 
-pub fn update_last_location(telegram_id: &str, lat: f64, long: f64, dist: f64) -> Result<(), Error> {
+pub fn update_last_location(username: &str, lat: f64, long: f64, dist: f64) -> Result<(), Error> {
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
     client.execute(
-        "UPDATE users SET lat = $1, long = $2, distance = $3 WHERE telegram_id = $4",&[&lat, &long, &dist, &telegram_id]
+        "UPDATE users SET lat = $1, long = $2, distance = $3 WHERE username = $4",&[&lat, &long, &dist, &username]
     )?;
     Ok(())
 }
 
-pub fn get_last_location(telegram_id: &str) -> Result<String, Error> {
+pub fn get_last_location(username: &str) -> Result<String, Error> {
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
-    let row = client.query_one("SELECT lat, long, distance FROM users WHERE telegram_id = $1", &[&telegram_id])?;
+    let row = client.query_one("SELECT lat, long, distance FROM users WHERE username = $1", &[&username])?;
     let distance: Option<f64> = row.get("distance");
     let lat: Option<f64> = row.get("lat");
     let long: Option<f64> = row.get("long");
@@ -156,6 +144,7 @@ pub fn create_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
     let email = &user.email;
     let empty_mail = &String::new();
     let email = email.as_ref().unwrap_or(empty_mail);
+    let experience = 0;
 
     let row = client.query_opt("SELECT username FROM users WHERE username = $1", &[&username])?;
     match row {
@@ -166,8 +155,8 @@ pub fn create_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
     }
     let password = hash(&user.password, HASHING_COST)?;
     client.execute(
-        "INSERT INTO users (username, password, email) VALUES ($1, $2, $3) ON CONFLICT (username) DO NOTHING",
-        &[&username, &password, &email],
+        "INSERT INTO users (username, password, email, experience) VALUES ($1, $2, $3, $4) ON CONFLICT (username) DO NOTHING",
+        &[&username, &password, &email, &experience],
     )?;
     Ok(String::from("User created"))
 }
