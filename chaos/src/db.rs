@@ -1,7 +1,7 @@
 use postgres::{Client, NoTls, Error};
 use serde::{Deserialize, Serialize};
 use rocket_contrib::json::Json;
-use bcrypt::hash;
+use bcrypt::{hash, verify};
 use std::error::Error as StdError;
 use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey};
 use rocket::request::{self, Request, FromRequest};
@@ -167,20 +167,28 @@ pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
 
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
     let username = &user.username;
-    let password = hash(&user.password, HASHING_COST)?;
+    let password = &user.password;
     
-    let row = client.query_opt("SELECT username FROM users WHERE username = $1 AND password = $2", &[&username, &password])?;
-    match row {
-        Some(_row) => {
-            return Ok(String::from("Login successful"))
-        }
-        None => (),
-    }
-
     let my_claims = Claims { sub: "outrun".to_owned(), company: "outrun".to_owned(), exp: 10000000000 };
     let token = match encode(&Header::default(), &my_claims, &EncodingKey::from_secret(token_secret)) {
         Ok(t) => t,
         Err(_) => "Error while creating token".to_string()
     };
-    Ok(token)
+
+    let row = client.query_opt("SELECT password FROM users WHERE username = $1", &[&username])?;
+    match row {
+        Some(_row) => {
+            let extracted_password: String = _row.get("password");
+            let valid = verify(password, &extracted_password).unwrap();
+            println!("{:?}", valid);
+            if valid {
+                Ok(token)
+            } else {
+                return Ok(String::from("Invalid password"))
+            }
+        }
+        None => {
+            return Ok(String::from("Username does not exist"))
+        },
+    }
 }

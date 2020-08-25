@@ -25,6 +25,7 @@ pub fn rocket() -> Rocket {
             paths::update_last_location, 
             paths::get_last_location, 
             paths::create_user, 
-            paths::login_user
+            paths::login_user,
+            paths::get_xp_notoken,
             ])
 }

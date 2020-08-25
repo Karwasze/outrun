@@ -51,3 +51,8 @@ pub fn add_xp(username: String, xp_amount: i32, _key: db::ApiKey) -> () {
 pub fn get_last_location(username: String, _key: db::ApiKey) -> String {
     db::get_last_location(&username).unwrap()
 }
+
+#[get("/get_xp_notoken?<username>")]
+pub fn get_xp_notoken(username: String) -> String {
+    db::get_xp(&username).unwrap()
+}
