@@ -1,9 +1,11 @@
 import * as React from "react";
-import { AsyncStorage, Button, Text, TextInput, View } from "react-native";
+import { AsyncStorage, Text, View, Alert } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-
-const AuthContext = React.createContext();
+import { _removeData, _retrieveData, _storeToken } from "./Token.js";
+import { reducerFunc, defaultState } from "./Reducer.js";
+import { SignInScreen, SignUpScreen } from "./SingUp.js";
+import { AuthContext } from "./Context.js";
 
 function SplashScreen() {
   return (
@@ -13,148 +15,10 @@ function SplashScreen() {
   );
 }
 
-function HomeScreen() {
-  const { signOut } = React.useContext(AuthContext);
-  const { getXP } = React.useContext(AuthContext);
-
-  return (
-    <View>
-      <Text>Signed in!</Text>
-      <Button title="Get XP" onPress={getXP} />
-      <Button title="Sign out" onPress={signOut} />
-    </View>
-  );
-}
-
-function SignUpScreen({ navigation }) {
-  const [username, setUsername] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [repeatPassword, setRepeatPassword] = React.useState("");
-
-  const { signUp } = React.useContext(AuthContext);
-
-  return (
-    <View>
-      <TextInput
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        placeholder="Email (optional)"
-        value={email}
-        defaultValue={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <TextInput
-        placeholder="Repeat password"
-        value={repeatPassword}
-        onChangeText={setRepeatPassword}
-        secureTextEntry
-      />
-
-      <Button
-        title="Sign up"
-        onPress={() =>
-          signUp({ username, email, password, repeatPassword, navigation })
-        }
-      />
-    </View>
-  );
-}
-
-function SignInScreen({ navigation }) {
-  const [username, setUsername] = React.useState("");
-  const [password, setPassword] = React.useState("");
-
-  const { signIn } = React.useContext(AuthContext);
-
-  return (
-    <View>
-      <TextInput
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <Button title="Sign in" onPress={() => signIn({ username, password })} />
-      <Button title="Sign up" onPress={() => navigation.navigate("SignUp")} />
-    </View>
-  );
-}
-
 const Stack = createStackNavigator();
 
 export default function App({ navigation }) {
-  const _storeToken = async (props) => {
-    try {
-      await AsyncStorage.setItem("userToken", props);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const _retrieveData = async () => {
-    try {
-      const value = await AsyncStorage.getItem("userToken");
-      if (value !== null) {
-        console.log(value);
-        return value;
-      }
-    } catch (error) {
-      console.log(value);
-    }
-  };
-
-  const _removeData = async () => {
-    try {
-      const value = await AsyncStorage.removeItem("userToken");
-    } catch (error) {
-      console.log(value);
-    }
-  };
-
-  const [state, dispatch] = React.useReducer(
-    (prevState, action) => {
-      switch (action.type) {
-        case "RESTORE_TOKEN":
-          return {
-            ...prevState,
-            userToken: action.token,
-            isLoading: false,
-          };
-        case "SIGN_IN":
-          return {
-            ...prevState,
-            isSignout: false,
-            userToken: action.token,
-          };
-        case "SIGN_OUT":
-          return {
-            ...prevState,
-            isSignout: true,
-            userToken: null,
-          };
-      }
-    },
-    {
-      isLoading: true,
-      isSignout: false,
-      userToken: null,
-    }
-  );
+  const [state, dispatch] = React.useReducer(reducerFunc, defaultState);
 
   React.useEffect(() => {
     // Fetch the token from storage then navigate to our appropriate place
@@ -186,7 +50,12 @@ export default function App({ navigation }) {
         // In the example, we'll use a dummy token
 
         if (data.username == "" || data.password == "") {
-          alert("Please enter your credentials");
+          Alert.alert(
+            "Login failed!",
+            "Please enter your credentials",
+            [{ text: "OK" }],
+            { cancelable: false }
+          );
           return;
         }
         let token = fetch("http://192.168.1.7:8000/login", {
@@ -199,7 +68,12 @@ export default function App({ navigation }) {
           .then((response) =>
             response.text().then((text) => {
               if (text == "Username or password does not exist") {
-                alert("Username or password does not exist!");
+                Alert.alert(
+                  "Login failed!",
+                  "Username or password does not exist",
+                  [{ text: "OK" }],
+                  { cancelable: false }
+                );
               } else {
                 dispatch({ type: "SIGN_IN", token: text });
                 _storeToken(text);
@@ -207,6 +81,7 @@ export default function App({ navigation }) {
             })
           )
           .catch((error) => {
+            alert();
             console.error(error);
           });
       },
@@ -216,9 +91,27 @@ export default function App({ navigation }) {
       },
 
       signUp: async (data) => {
-        console.log("here");
+        const possibleNullValues = [
+          data.username,
+          data.password,
+          data.repeatPassword,
+        ];
+        if (possibleNullValues.some((r) => r == "")) {
+          Alert.alert(
+            "Register failed!",
+            "Fill in required fields",
+            [{ text: "OK" }],
+            { cancelable: false }
+          );
+          return;
+        }
         if (data.password !== data.repeatPassword) {
-          alert("Entered passwords do not match!");
+          Alert.alert(
+            "Register failed!",
+            "Entered passwords do not match!",
+            [{ text: "OK" }],
+            { cancelable: false }
+          );
         }
         let token = fetch("http://192.168.1.7:8000/users", {
           method: "POST",
@@ -230,9 +123,19 @@ export default function App({ navigation }) {
           .then((response) =>
             response.text().then((text) => {
               if (text == "User already exists") {
-                alert("User already exists!");
+                Alert.alert(
+                  "Register failed!",
+                  "User already exists!",
+                  [{ text: "OK" }],
+                  { cancelable: false }
+                );
               } else if (text == "User created") {
-                alert("User created");
+                Alert.alert(
+                  "Register failed!",
+                  "User created",
+                  [{ text: "OK" }],
+                  { cancelable: false }
+                );
               } else {
                 console.log(text);
               }
