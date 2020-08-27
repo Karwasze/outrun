@@ -1,11 +1,13 @@
 import * as React from "react";
-import { AsyncStorage, Text, View, Alert } from "react-native";
+import { Text, View, Alert } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { _removeData, _retrieveData, _storeToken } from "./Token.js";
+import { _removeData, _retrieveData, _storeData } from "./Storage.js";
 import { reducerFunc, defaultState } from "./Reducer.js";
-import { SignInScreen, SignUpScreen } from "./SingUp.js";
+import { SignInScreen, SignUpScreen } from "./SigningScreens.js";
 import { AuthContext } from "./Context.js";
+import { HomeScreen } from "./HomeScreen.js";
+import { _signOut } from "./Signing.js";
 
 function SplashScreen() {
   return (
@@ -21,20 +23,11 @@ export default function App({ navigation }) {
   const [state, dispatch] = React.useReducer(reducerFunc, defaultState);
 
   React.useEffect(() => {
-    // Fetch the token from storage then navigate to our appropriate place
     const bootstrapAsync = async () => {
-      let userToken;
-
-      try {
-        userToken = await AsyncStorage.getItem("userToken");
-      } catch (e) {
-        // Restoring token failed
-      }
+      let userToken = _retrieveData("userToken");
 
       // After restoring token, we may need to validate it in production apps
 
-      // This will switch to the App screen or Auth screen and this loading
-      // screen will be unmounted and thrown away.
       dispatch({ type: "RESTORE_TOKEN", token: userToken });
     };
 
@@ -44,11 +37,6 @@ export default function App({ navigation }) {
   const authContext = React.useMemo(
     () => ({
       signIn: async (data) => {
-        // In a production app, we need to send some data (usually username, password) to server and get a token
-        // We will also need to handle errors if sign in failed
-        // After getting token, we need to persist the token using `AsyncStorage`
-        // In the example, we'll use a dummy token
-
         if (data.username == "" || data.password == "") {
           Alert.alert(
             "Login failed!",
@@ -76,7 +64,8 @@ export default function App({ navigation }) {
                 );
               } else {
                 dispatch({ type: "SIGN_IN", token: text });
-                _storeToken(text);
+                _storeData("userToken", text);
+                _storeData("username", data.username);
               }
             })
           )
@@ -86,7 +75,8 @@ export default function App({ navigation }) {
           });
       },
       signOut: async (data) => {
-        _removeData();
+        _removeData("username");
+        _removeData("userToken");
         dispatch({ type: "SIGN_OUT" });
       },
 
@@ -148,19 +138,27 @@ export default function App({ navigation }) {
         dispatch({ type: "SIGN_OUT" });
       },
       getXP: async (data) => {
-        // In a production app, we need to send some data (usually username, password) to server and get a token
-        // We will also need to handle errors if sign in failed
-        // After getting token, we need to persist the token using `AsyncStorage`
-        // In the example, we'll use a dummy token
-        const userToken = await _retrieveData();
-        // let xp = fetch("http://jsonplaceholder.typicode.com/posts/2", {
-        let xp = fetch("http://192.168.1.7:8000/get_xp?username=Karwaszek", {
+        const userToken = await _retrieveData("userToken");
+        const username = await _retrieveData("username");
+
+        let xp = fetch("http://192.168.1.7:8000/get_xp?username=" + username, {
           method: "GET",
           headers: {
             Authorization: "Bearer " + userToken,
           },
         })
-          .then((response) => response.text().then((text) => console.log(text)))
+          .then((response) =>
+            response
+              .text()
+              .then((text) =>
+                Alert.alert(
+                  "Experience",
+                  "Your current experience points: " + text,
+                  [{ text: "OK" }],
+                  { cancelable: false }
+                )
+              )
+          )
           .catch((error) => {
             console.error(error);
           });
@@ -174,17 +172,14 @@ export default function App({ navigation }) {
       <NavigationContainer>
         <Stack.Navigator>
           {state.isLoading ? (
-            // We haven't finished checking for the token yet
             <Stack.Screen name="Splash" component={SplashScreen} />
           ) : state.userToken === null ? (
-            // No token found, user isn't signed in
             <>
               <Stack.Screen
                 name="SignIn"
                 component={SignInScreen}
                 options={{
                   title: "Sign in",
-                  // When logging out, a pop animation feels intuitive
                   animationTypeForReplace: state.isSignout ? "pop" : "push",
                 }}
               />
@@ -198,7 +193,6 @@ export default function App({ navigation }) {
               />
             </>
           ) : (
-            // User is signed in
             <Stack.Screen name="Home" component={HomeScreen} />
           )}
         </Stack.Navigator>

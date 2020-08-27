@@ -1,8 +1,8 @@
 import * as React from "react";
-import { Button, View } from "react-native";
+import { Button, View, Text } from "react-native";
 import { AuthContext } from "./Context.js";
 
-function HomeScreen() {
+export function HomeScreen() {
   const { signOut } = React.useContext(AuthContext);
   const { getXP } = React.useContext(AuthContext);
 
