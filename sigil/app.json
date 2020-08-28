@@ -23,7 +23,8 @@
             "NSRequiresCertificateTransparency": false,
             "NSIncludesSubdomains": true
           }
-        }
+        },
+        "NSLocationWhenInUseUsageDescription": true
       }
     },
     "web": {
