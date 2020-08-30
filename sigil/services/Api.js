@@ -41,13 +41,13 @@ export const getCoords = (location, setLocation) => async (data) => {
     setLocation(location);
     let lat = location["coords"]["latitude"];
     let long = location["coords"]["longitude"];
-
+    console.log("data", data);
     let poi = fetch(
       "http://192.168.1.7:8000/coords?" +
         new URLSearchParams({
           lat: lat,
           long: long,
-          distance: 400,
+          distance: data,
         }),
       {
         method: "GET",
