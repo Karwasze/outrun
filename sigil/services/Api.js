@@ -3,28 +3,18 @@ import { Alert } from "react-native";
 import { _retrieveData } from "./Storage.js";
 import * as Location from "expo-location";
 
-export const getXP = () => async (data) => {
+export const getXP = () => async () => {
+  console.log("CALLED GET XP");
   const userToken = await _retrieveData("userToken");
   const username = await _retrieveData("username");
 
-  let xp = fetch("http://192.168.1.7:8000/get_xp?username=" + username, {
+  return await fetch("http://192.168.1.7:8000/get_xp?username=" + username, {
     method: "GET",
     headers: {
       Authorization: "Bearer " + userToken,
     },
   })
-    .then((response) =>
-      response
-        .text()
-        .then((text) =>
-          Alert.alert(
-            "Experience",
-            "Your current experience points: " + text,
-            [{ text: "OK" }],
-            { cancelable: false }
-          )
-        )
-    )
+    .then((response) => response.text())
     .catch((error) => {
       console.error(error);
     });

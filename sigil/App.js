@@ -6,7 +6,7 @@ import { _removeData, _retrieveData, _storeData } from "./services/Storage.js";
 import { reducerFunc, defaultState } from "./services/Reducer.js";
 import { SignInScreen, SignUpScreen } from "./screen/SigningScreens.js";
 import { AuthContext } from "./services/Context.js";
-import { HomeScreen } from "./screen/HomeScreen.js";
+import { HomeScreen, SettingsScreen } from "./screen/HomeScreen.js";
 import { signOut, signIn, signUp } from "./services/Signing.js";
 import { getXP, getCoords } from "./services/Api.js";
 
