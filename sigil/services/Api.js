@@ -4,7 +4,6 @@ import { _retrieveData } from "./Storage.js";
 import * as Location from "expo-location";
 
 export const getXP = () => async () => {
-  console.log("CALLED GET XP");
   const userToken = await _retrieveData("userToken");
   const username = await _retrieveData("username");
 
@@ -20,24 +19,18 @@ export const getXP = () => async () => {
     });
 };
 
-export const getCoords = (location, setLocation) => async (data) => {
+export const getCoords = async (location, distance) => {
   const userToken = await _retrieveData("userToken");
-  (async () => {
-    let { status } = await Location.requestPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission to access location was denied");
-    }
-    let location = await Location.getCurrentPositionAsync({});
-    setLocation(location);
-    let lat = location["coords"]["latitude"];
-    let long = location["coords"]["longitude"];
-    console.log("data", data);
-    let poi = fetch(
+  if (distance === "Enter distance (in meters)") {
+    alert("Enter correct distance");
+    return;
+  } else {
+    return await fetch(
       "http://192.168.1.7:8000/coords?" +
         new URLSearchParams({
-          lat: lat,
-          long: long,
-          distance: data,
+          lat: location.lat,
+          long: location.long,
+          distance: distance,
         }),
       {
         method: "GET",
@@ -47,14 +40,26 @@ export const getCoords = (location, setLocation) => async (data) => {
       }
     )
       .then((response) =>
-        response
-          .text()
-          .then((text) =>
-            Alert.alert("Coords", text, [{ text: "OK" }], { cancelable: false })
-          )
+        response.text().then((text) => {
+          let parsed = JSON.parse(text).coords;
+          let lat = parsed.lat;
+          let long = parsed.long;
+          return { lat, long };
+        })
       )
       .catch((error) => {
         console.error(error);
       });
-  })();
+  }
+};
+
+export const resetCoords = async () => {
+  let { status } = await Location.requestPermissionsAsync();
+  if (status !== "granted") {
+    alert("Permission to access location was denied");
+  }
+  let location = await Location.getCurrentPositionAsync({});
+  let lat = parseFloat(location["coords"]["latitude"]);
+  let long = parseFloat(location["coords"]["longitude"]);
+  return { lat, long };
 };

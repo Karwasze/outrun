@@ -6,9 +6,9 @@ import { _removeData, _retrieveData, _storeData } from "./services/Storage.js";
 import { reducerFunc, defaultState } from "./services/Reducer.js";
 import { SignInScreen, SignUpScreen } from "./screen/SigningScreens.js";
 import { AuthContext } from "./services/Context.js";
-import { HomeScreen, SettingsScreen } from "./screen/HomeScreen.js";
+import { HomeScreen } from "./screen/HomeScreen.js";
 import { signOut, signIn, signUp } from "./services/Signing.js";
-import { getXP, getCoords } from "./services/Api.js";
+import { getXP } from "./services/Api.js";
 
 function SplashScreen() {
   return (
@@ -22,7 +22,7 @@ const Stack = createStackNavigator();
 
 export default function App({ navigation }) {
   const [state, dispatch] = React.useReducer(reducerFunc, defaultState);
-  const [location, setLocation] = React.useState(null);
+  // const [location, setLocation] = React.useState(null);
 
   React.useEffect(() => {
     const bootstrapAsync = async () => {
@@ -42,7 +42,6 @@ export default function App({ navigation }) {
       signOut: signOut(dispatch),
       signUp: signUp(dispatch),
       getXP: getXP(),
-      getCoords: getCoords(location, setLocation),
     }),
     []
   );
@@ -73,7 +72,7 @@ export default function App({ navigation }) {
               />
             </>
           ) : (
-            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="OUTRUN" component={HomeScreen} />
           )}
         </Stack.Navigator>
       </NavigationContainer>

@@ -11,7 +11,7 @@ export const signIn = (dispatch) => async (data) => {
     );
     return;
   }
-  let token = fetch("http://192.168.1.7:8000/login", {
+  fetch("http://192.168.1.7:8000/login", {
     method: "POST",
     body: JSON.stringify({
       username: data.username,
@@ -98,5 +98,6 @@ export const signUp = (dispatch) => async (data) => {
 export const signOut = (dispatch) => async (data) => {
   _removeData("username");
   _removeData("userToken");
+  _removeData("XP");
   dispatch({ type: "SIGN_OUT" });
 };
