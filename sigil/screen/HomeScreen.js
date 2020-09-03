@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MapView from "react-native-maps";
+import openMap from "react-native-open-maps";
 import { AuthContext } from "../services/Context.js";
 import { getXP } from "../services/Api.js";
 import { _retrieveData, _storeData } from "../services/Storage.js";
@@ -97,6 +98,21 @@ export function PlayScreen() {
             title="Generate new POI"
             onPress={async () => setPOI(await getCoords(location, distance))}
           />
+          {POI ? (
+            <Button
+              title="Open in Apple Maps"
+              onPress={() =>
+                openMap({
+                  latitude: POI.lat,
+                  longitude: POI.long,
+                  provider: "apple",
+                  query: `${POI.lat} , ${POI.long}`,
+                })
+              }
+            />
+          ) : (
+            <></>
+          )}
         </View>
       </TouchableWithoutFeedback>
     </>
