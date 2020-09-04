@@ -14,7 +14,7 @@ import openMap from "react-native-open-maps";
 import { AuthContext } from "../services/Context.js";
 import { getXP } from "../services/Api.js";
 import { _retrieveData, _storeData } from "../services/Storage.js";
-import { resetCoords, getCoords } from "../services/Api.js";
+import { resetCoords, getCoords, updateCoords } from "../services/Api.js";
 
 const styles = StyleSheet.create({
   container: {
@@ -96,7 +96,11 @@ export function PlayScreen() {
           />
           <Button
             title="Generate new POI"
-            onPress={async () => setPOI(await getCoords(location, distance))}
+            onPress={async () => {
+              const generatedCoords = await getCoords(location, distance);
+              setPOI(generatedCoords, distance);
+              updateCoords(generatedCoords, distance);
+            }}
           />
           {POI ? (
             <Button

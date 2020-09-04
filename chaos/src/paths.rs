@@ -12,18 +12,27 @@ pub fn index() -> &'static str {
 #[post("/users", data = "<user>")]
 pub fn create_user(user: Json<User>) -> String { 
     println!("{:?}", user);
-    db::create_user(user).unwrap()
+    match db::create_user(user) {
+        Ok(user) => user,
+        Err(_e) => "Error while creating user".to_string(),
+    }
 }
 
 #[post("/login", data = "<user>")]
 pub fn login_user(user: Json<User>) -> String { 
     println!("{:?}", user);
-    db::login_user(user).unwrap()
+    match db::login_user(user) {
+        Ok(user) => user,
+        Err(_e) => "Error while loggin in".to_string(),
+    }
 }
 
 #[get("/coords?<lat>&<long>&<distance>")]
 pub fn get_point(lat: f64, long: f64, distance: f64, _key: db::ApiKey) -> String {
-    coords::get_point(lat, long, distance)
+    match coords::get_point(lat, long, distance) {
+        Ok(coords) => coords,
+        Err(_e) => "Error while getting coordinates".to_string(),
+    }
 }
 
 #[post("/update_last_location?<username>&<lat>&<long>&<distance>")]
@@ -36,7 +45,10 @@ pub fn update_last_location(username: String, lat: f64, long: f64, distance: f64
 
 #[get("/get_xp?<username>")]
 pub fn get_xp(username: String, _key: db::ApiKey) -> String {
-    db::get_xp(&username).unwrap()
+    match db::get_xp(&username) {
+        Ok(xp) => xp,
+        Err(_e) => "Error while getting xp".to_string(),
+    }
 }
 
 #[post("/add_xp?<username>&<xp_amount>")]
@@ -49,10 +61,8 @@ pub fn add_xp(username: String, xp_amount: i32, _key: db::ApiKey) -> () {
 
 #[get("/get_last_location?<username>")]
 pub fn get_last_location(username: String, _key: db::ApiKey) -> String {
-    db::get_last_location(&username).unwrap()
-}
-
-#[get("/get_xp_notoken?<username>")]
-pub fn get_xp_notoken(username: String) -> String {
-    db::get_xp(&username).unwrap()
+    match db::get_last_location(&username) {
+        Ok(location) => location,
+        Err(_e) => "Error while getting location".to_string(),
+    }
 }

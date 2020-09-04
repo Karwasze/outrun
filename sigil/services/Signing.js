@@ -1,6 +1,8 @@
 import { _removeData, _storeData } from "./Storage.js";
 import { Alert } from "react-native";
 
+const ipAddr = "http://192.168.100.41:8000";
+
 export const signIn = (dispatch) => async (data) => {
   if (data.username == "" || data.password == "") {
     Alert.alert(
@@ -11,7 +13,7 @@ export const signIn = (dispatch) => async (data) => {
     );
     return;
   }
-  fetch("http://192.168.1.7:8000/login", {
+  fetch(ipAddr + "/login", {
     method: "POST",
     body: JSON.stringify({
       username: data.username,
@@ -63,7 +65,7 @@ export const signUp = (dispatch) => async (data) => {
       { cancelable: false }
     );
   }
-  let token = fetch("http://192.168.1.7:8000/users", {
+  fetch(ipAddr + "/users", {
     method: "POST",
     body: JSON.stringify({
       username: data.username,
