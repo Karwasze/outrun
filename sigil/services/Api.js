@@ -1,18 +1,27 @@
 import React from "react";
 import { Alert } from "react-native";
-import { _retrieveData } from "./Storage.js";
+import { _retrieveData, _removeData } from "./Storage.js";
 import * as Location from "expo-location";
+
+const ipAddr = "http://192.168.100.41:8000";
 
 export const getXP = () => async () => {
   const userToken = await _retrieveData("userToken");
   const username = await _retrieveData("username");
 
-  return await fetch("http://192.168.1.7:8000/get_xp?username=" + username, {
-    method: "GET",
-    headers: {
-      Authorization: "Bearer " + userToken,
-    },
-  })
+  return await fetch(
+    ipAddr +
+      "/get_xp?" +
+      new URLSearchParams({
+        username: username,
+      }),
+    {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + userToken,
+      },
+    }
+  )
     .then((response) => response.text())
     .catch((error) => {
       console.error(error);
@@ -26,7 +35,8 @@ export const getCoords = async (location, distance) => {
     return;
   } else {
     return await fetch(
-      "http://192.168.1.7:8000/coords?" +
+      ipAddr +
+        "/coords?" +
         new URLSearchParams({
           lat: location.lat,
           long: location.long,
@@ -51,6 +61,32 @@ export const getCoords = async (location, distance) => {
         console.error(error);
       });
   }
+};
+
+export const updateCoords = async (location, distance) => {
+  const userToken = await _retrieveData("userToken");
+  const username = await _retrieveData("username");
+  console.log("Updating coords!");
+  return await fetch(
+    ipAddr +
+      "/update_last_location?" +
+      new URLSearchParams({
+        username: username,
+        lat: location.lat,
+        long: location.long,
+        distance: distance,
+      }),
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + userToken,
+      },
+    }
+  )
+    .then((response) => console.log(response.text()))
+    .catch((error) => {
+      console.error(error);
+    });
 };
 
 export const resetCoords = async () => {

@@ -53,7 +53,7 @@ pub fn random_point(coords: Coords, distance: f64) -> Coords {
     result
 }
 
-pub fn get_point(lat: f64, long: f64, distance: f64) -> String {
+pub fn get_point(lat: f64, long: f64, distance: f64) -> Result<String, serde_json::Error> {
     let input = Coords {
         lat: lat,
         long: long,
@@ -64,6 +64,5 @@ pub fn get_point(lat: f64, long: f64, distance: f64) -> String {
         coords: rnd_point,
         parameters: point_parameters,
     };
-    let json_result = serde_json::to_string(&result).unwrap();
-    json_result
+    serde_json::to_string(&result)
 }
