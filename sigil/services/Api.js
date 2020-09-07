@@ -3,7 +3,7 @@ import { Alert } from "react-native";
 import { _retrieveData, _removeData } from "./Storage.js";
 import * as Location from "expo-location";
 
-const ipAddr = "http://192.168.100.41:8000";
+const ipAddr = "http://192.168.1.3:8000";
 
 export const getXP = () => async () => {
   const userToken = await _retrieveData("userToken");

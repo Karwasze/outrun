@@ -49,6 +49,14 @@ export function PlayScreen() {
   const [POI, setPOI] = React.useState(null);
   const clearTextOnFocus = true;
 
+  React.useEffect(() => {
+    const interval = setInterval(async () => {
+      setLocation(await resetCoords());
+      console.log(location);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
       <View style={{ flex: 1 }}>
@@ -97,6 +105,7 @@ export function PlayScreen() {
           <Button
             title="Generate new POI"
             onPress={async () => {
+              console.log("LOKACJA", location);
               const generatedCoords = await getCoords(location, distance);
               setPOI(generatedCoords, distance);
               updateCoords(generatedCoords, distance);

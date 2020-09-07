@@ -1,7 +1,7 @@
 import { _removeData, _storeData } from "./Storage.js";
 import { Alert } from "react-native";
 
-const ipAddr = "http://192.168.100.41:8000";
+const ipAddr = "http://192.168.1.3:8000";
 
 export const signIn = (dispatch) => async (data) => {
   if (data.username == "" || data.password == "") {
