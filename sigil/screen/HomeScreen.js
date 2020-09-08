@@ -52,7 +52,6 @@ export function PlayScreen() {
   React.useEffect(() => {
     const interval = setInterval(async () => {
       setLocation(await resetCoords());
-      console.log(location);
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -99,13 +98,8 @@ export function PlayScreen() {
             clearTextOnFocus={clearTextOnFocus}
           />
           <Button
-            title="Reset your location"
-            onPress={async () => setLocation(await resetCoords())}
-          />
-          <Button
             title="Generate new POI"
             onPress={async () => {
-              console.log("LOKACJA", location);
               const generatedCoords = await getCoords(location, distance);
               setPOI(generatedCoords, distance);
               updateCoords(generatedCoords, distance);

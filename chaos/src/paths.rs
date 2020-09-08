@@ -14,16 +14,15 @@ pub fn create_user(user: Json<User>) -> String {
     println!("{:?}", user);
     match db::create_user(user) {
         Ok(user) => user,
-        Err(_e) => "Error while creating user".to_string(),
+        Err(e) => e.to_string(),
     }
 }
 
 #[post("/login", data = "<user>")]
 pub fn login_user(user: Json<User>) -> String { 
-    println!("{:?}", user);
     match db::login_user(user) {
-        Ok(user) => user,
-        Err(_e) => "Error while loggin in".to_string(),
+        Ok(user) => user.to_string(),
+        Err(e) => e.to_string(),
     }
 }
 

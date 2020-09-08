@@ -149,7 +149,7 @@ pub fn create_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
     let row = client.query_opt("SELECT username FROM users WHERE username = $1", &[&username])?;
     match row {
         Some(_row) => {
-            return Ok(String::from("User already exists"))
+            return Err("User already exists".to_string().into())
         }
         None => (),
     }
@@ -172,7 +172,7 @@ pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
     let my_claims = Claims { sub: "outrun".to_owned(), company: "outrun".to_owned(), exp: 10000000000 };
     let token = match encode(&Header::default(), &my_claims, &EncodingKey::from_secret(token_secret)) {
         Ok(t) => t,
-        Err(_) => "Error while creating token".to_string()
+        Err(_) => return Err("Error while creating token".to_string().into())
     };
 
     let row = client.query_opt("SELECT password FROM users WHERE username = $1", &[&username])?;
@@ -180,15 +180,14 @@ pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
         Some(_row) => {
             let extracted_password: String = _row.get("password");
             let valid = verify(password, &extracted_password).unwrap();
-            println!("{:?}", valid);
             if valid {
                 Ok(token)
             } else {
-                return Ok(String::from("Invalid password"))
+                return Err("Invalid password".to_string().into())
             }
         }
         None => {
-            return Ok(String::from("Username does not exist"))
+            return Err("Username does not exist".to_string().into())
         },
     }
 }

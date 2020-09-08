@@ -66,7 +66,6 @@ export const getCoords = async (location, distance) => {
 export const updateCoords = async (location, distance) => {
   const userToken = await _retrieveData("userToken");
   const username = await _retrieveData("username");
-  console.log("Updating coords!");
   return await fetch(
     ipAddr +
       "/update_last_location?" +
@@ -82,11 +81,9 @@ export const updateCoords = async (location, distance) => {
         Authorization: "Bearer " + userToken,
       },
     }
-  )
-    .then((response) => console.log(response.text()))
-    .catch((error) => {
-      console.error(error);
-    });
+  ).catch((error) => {
+    console.error(error);
+  });
 };
 
 export const resetCoords = async () => {

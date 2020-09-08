@@ -22,17 +22,36 @@ export const signIn = (dispatch) => async (data) => {
   })
     .then((response) =>
       response.text().then((text) => {
-        if (text == "Username or password does not exist") {
-          Alert.alert(
-            "Login failed!",
-            "Username or password does not exist",
-            [{ text: "OK" }],
-            { cancelable: false }
-          );
-        } else {
-          dispatch({ type: "SIGN_IN", token: text });
-          _storeData("userToken", text);
-          _storeData("username", data.username);
+        switch (text) {
+          case "Invalid password":
+            Alert.alert("Login failed!", "Invalid password", [{ text: "OK" }], {
+              cancelable: false,
+            });
+            break;
+          case "Username does not exist":
+            Alert.alert(
+              "Login failed!",
+              "Username does not exist",
+              [{ text: "OK" }],
+              {
+                cancelable: false,
+              }
+            );
+            break;
+          case "Error while creating token":
+            Alert.alert(
+              "Login failed!",
+              "Error while creating token",
+              [{ text: "OK" }],
+              {
+                cancelable: false,
+              }
+            );
+            break;
+          default:
+            dispatch({ type: "SIGN_IN", token: text });
+            _storeData("userToken", text);
+            _storeData("username", data.username);
         }
       })
     )
@@ -48,7 +67,7 @@ export const signUp = (dispatch) => async (data) => {
     data.password,
     data.repeatPassword,
   ];
-  if (possibleNullValues.some((r) => r == "")) {
+  if (possibleNullValues.some((field) => field == "")) {
     Alert.alert(
       "Register failed!",
       "Fill in required fields",
@@ -74,19 +93,36 @@ export const signUp = (dispatch) => async (data) => {
   })
     .then((response) =>
       response.text().then((text) => {
-        if (text == "User already exists") {
-          Alert.alert(
-            "Register failed!",
-            "User already exists!",
-            [{ text: "OK" }],
-            { cancelable: false }
-          );
-        } else if (text == "User created") {
-          Alert.alert("Register complete!", "User created", [{ text: "OK" }], {
-            cancelable: false,
-          });
-        } else {
-          console.log(text);
+        switch (text) {
+          case "User already exists":
+            Alert.alert(
+              "Register failed!",
+              "User already exists!",
+              [{ text: "OK" }],
+              { cancelable: false }
+            );
+            break;
+          case "User created":
+            Alert.alert(
+              "Register complete!",
+              "User created",
+              [{ text: "OK" }],
+              {
+                cancelable: false,
+              }
+            );
+            break;
+          case "Error while creating token":
+            Alert.alert(
+              "Login failed!",
+              "Error while creating token",
+              [{ text: "OK" }],
+              {
+                cancelable: false,
+              }
+            );
+            break;
+          default:
         }
       })
     )
