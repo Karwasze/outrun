@@ -58,18 +58,9 @@ fn generate_name() -> String {
 
 pub fn generate_parameters() -> Parameters {
     let mut rng = rand::thread_rng();
-    let power_level = rng.gen_range(0, 11);
+    let power = rng.gen_range(0, 11);
     let artifact_cond = rand::random();
     let name = generate_name();
-    let power = if power_level > 8 {
-        format!(
-            "WARNING, POWERFUL ANOMALY OF LEVEL {} DETECTED",
-            power_level
-        )
-    } else {
-        format!("Power: {}", power_level)
-    };
-
     let artifact = if artifact_cond {
         "Arfifact found!"
     } else {
@@ -79,7 +70,7 @@ pub fn generate_parameters() -> Parameters {
     Parameters {
         name: name,
         radius: rng.gen_range(1, 201),
-        power: power,
+        power: power.to_string(),
         artifact: artifact.to_string(),
         song: song,
     }

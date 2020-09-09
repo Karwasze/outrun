@@ -51,10 +51,8 @@ export const getCoords = async (location, distance) => {
     )
       .then((response) =>
         response.text().then((text) => {
-          let parsed = JSON.parse(text).coords;
-          let lat = parsed.lat;
-          let long = parsed.long;
-          return { lat, long };
+          let parsed = JSON.parse(text);
+          return parsed;
         })
       )
       .catch((error) => {

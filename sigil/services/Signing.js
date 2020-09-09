@@ -20,41 +20,20 @@ export const signIn = (dispatch) => async (data) => {
       password: data.password,
     }),
   })
-    .then((response) =>
-      response.text().then((text) => {
-        switch (text) {
-          case "Invalid password":
-            Alert.alert("Login failed!", "Invalid password", [{ text: "OK" }], {
-              cancelable: false,
-            });
-            break;
-          case "Username does not exist":
-            Alert.alert(
-              "Login failed!",
-              "Username does not exist",
-              [{ text: "OK" }],
-              {
-                cancelable: false,
-              }
-            );
-            break;
-          case "Error while creating token":
-            Alert.alert(
-              "Login failed!",
-              "Error while creating token",
-              [{ text: "OK" }],
-              {
-                cancelable: false,
-              }
-            );
-            break;
-          default:
-            dispatch({ type: "SIGN_IN", token: text });
-            _storeData("userToken", text);
-            _storeData("username", data.username);
-        }
-      })
-    )
+    .then((response) => {
+      if (!response.ok) {
+        console.log(response.text());
+        Alert.alert("Login failed!", "Try again", [{ text: "OK" }], {
+          cancelable: false,
+        });
+      } else {
+        response.text().then((text) => {
+          dispatch({ type: "SIGN_IN", token: text });
+          _storeData("userToken", text);
+          _storeData("username", data.username);
+        });
+      }
+    })
     .catch((error) => {
       alert();
       console.error(error);
@@ -91,41 +70,20 @@ export const signUp = (dispatch) => async (data) => {
       password: data.password,
     }),
   })
-    .then((response) =>
-      response.text().then((text) => {
-        switch (text) {
-          case "User already exists":
-            Alert.alert(
-              "Register failed!",
-              "User already exists!",
-              [{ text: "OK" }],
-              { cancelable: false }
-            );
-            break;
-          case "User created":
-            Alert.alert(
-              "Register complete!",
-              "User created",
-              [{ text: "OK" }],
-              {
-                cancelable: false,
-              }
-            );
-            break;
-          case "Error while creating token":
-            Alert.alert(
-              "Login failed!",
-              "Error while creating token",
-              [{ text: "OK" }],
-              {
-                cancelable: false,
-              }
-            );
-            break;
-          default:
-        }
-      })
-    )
+    .then((response) => {
+      if (!response.ok) {
+        console.log(response.text());
+        Alert.alert("Sign up failed!", "Try again", [{ text: "OK" }], {
+          cancelable: false,
+        });
+      } else {
+        response.text().then((text) => {
+          dispatch({ type: "SIGN_IN", token: text });
+          _storeData("userToken", text);
+          _storeData("username", data.username);
+        });
+      }
+    })
     .catch((error) => {
       console.error(error);
     });

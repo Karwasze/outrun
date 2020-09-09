@@ -7,10 +7,12 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   StyleSheet,
+  Linking,
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MapView from "react-native-maps";
 import openMap from "react-native-open-maps";
+import Hyperlink from "react-native-hyperlink";
 import { AuthContext } from "../services/Context.js";
 import { getXP } from "../services/Api.js";
 import { _retrieveData, _storeData } from "../services/Storage.js";
@@ -79,7 +81,10 @@ export function PlayScreen() {
           )}
           {POI ? (
             <MapView.Marker
-              coordinate={{ latitude: POI.lat, longitude: POI.long }}
+              coordinate={{
+                latitude: POI.coords.lat,
+                longitude: POI.coords.long,
+              }}
               title="Your destination"
               pinColor="#dd1cff"
             />
@@ -102,24 +107,10 @@ export function PlayScreen() {
             onPress={async () => {
               const generatedCoords = await getCoords(location, distance);
               setPOI(generatedCoords, distance);
-              updateCoords(generatedCoords, distance);
+              updateCoords(generatedCoords.coords, distance);
             }}
           />
-          {POI ? (
-            <Button
-              title="Open in Apple Maps"
-              onPress={() =>
-                openMap({
-                  latitude: POI.lat,
-                  longitude: POI.long,
-                  provider: "apple",
-                  query: `${POI.lat} , ${POI.long}`,
-                })
-              }
-            />
-          ) : (
-            <></>
-          )}
+          {POI ? <POIComponents poi={POI}></POIComponents> : <></>}
         </View>
       </TouchableWithoutFeedback>
     </>
@@ -150,5 +141,34 @@ export function SettingsScreen() {
       <Text>Your current xp: {XP}</Text>
       <Button title="Sign out" onPress={signOut} />
     </View>
+  );
+}
+
+function POIComponents({ poi }) {
+  return (
+    <>
+      <Button
+        title="Open in Apple Maps"
+        onPress={() =>
+          openMap({
+            latitude: POI.lat,
+            longitude: POI.long,
+            provider: "apple",
+            query: `${POI.lat} , ${POI.long}`,
+          })
+        }
+      />
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Parameters</Text>
+        <Text style={{ textAlign: "left" }}>Name: {poi.parameters.name} </Text>
+        <Text>Radius: {poi.parameters.radius}m </Text>
+        <Text>Power level: {poi.parameters.power}</Text>
+        <Text>{poi.parameters.artifact}</Text>
+        <Hyperlink linkDefault={true} linkStyle={{ color: "blue" }}>
+          <Text>Song: {poi.parameters.song}</Text>
+        </Hyperlink>
+        <Button title="Validate point" />
+      </View>
+    </>
   );
 }

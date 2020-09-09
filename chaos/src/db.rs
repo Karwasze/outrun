@@ -149,7 +149,7 @@ pub fn create_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
     let row = client.query_opt("SELECT username FROM users WHERE username = $1", &[&username])?;
     match row {
         Some(_row) => {
-            return Err("User already exists".to_string().into())
+            return Ok("User already exists".to_string())
         }
         None => (),
     }
@@ -158,7 +158,7 @@ pub fn create_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
         "INSERT INTO users (username, password, email, experience) VALUES ($1, $2, $3, $4) ON CONFLICT (username) DO NOTHING",
         &[&username, &password, &email, &experience],
     )?;
-    Ok(String::from("User created"))
+    Ok("User created".to_string())
 }
 
 pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
@@ -172,7 +172,7 @@ pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
     let my_claims = Claims { sub: "outrun".to_owned(), company: "outrun".to_owned(), exp: 10000000000 };
     let token = match encode(&Header::default(), &my_claims, &EncodingKey::from_secret(token_secret)) {
         Ok(t) => t,
-        Err(_) => return Err("Error while creating token".to_string().into())
+        Err(_) => return Ok("Error while creating token".to_string())
     };
 
     let row = client.query_opt("SELECT password FROM users WHERE username = $1", &[&username])?;
@@ -183,11 +183,11 @@ pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
             if valid {
                 Ok(token)
             } else {
-                return Err("Invalid password".to_string().into())
+                return Ok("Invalid password".to_string())
             }
         }
         None => {
-            return Err("Username does not exist".to_string().into())
+            return Ok("Username does not exist".to_string())
         },
     }
 }
