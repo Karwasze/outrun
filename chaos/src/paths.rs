@@ -3,6 +3,7 @@ use rocket_contrib::json::Json;
 use crate::db;
 use crate::coords;
 use crate::db::User;
+use crate::db::CurrentLocation;
 use rocket::http::Status;
 
 #[get("/")]
@@ -71,5 +72,17 @@ pub fn get_last_location(username: String, _key: db::ApiKey) -> Result<String, S
     match db::get_last_location(&username) {
         Ok(location) => Ok(location),
         Err(_e) => Err(Status::new(400, "Error while retrieving location")),
+    }
+}
+
+#[post("/validate_location?<username>", data = "<current_location>")]
+pub fn validate_location(username: String, current_location: Json<CurrentLocation>) -> Result<String, Status> {
+    match db::validate_location(&username, current_location) {
+        Ok(response) => match response.as_str() {
+            "You are too far away to validate the point, please move closer" => Err(Status::new(400, "Too far away")),
+            "Validated" => Ok("Validated".to_string()),
+            _ => Ok(response.to_string()),
+        }  
+        Err(_e) => Err(Status::new(400, "Bad request")),
     }
 }

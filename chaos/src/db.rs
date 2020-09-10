@@ -7,6 +7,7 @@ use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey}
 use rocket::request::{self, Request, FromRequest};
 use rocket::Outcome;
 use rocket::http::Status;
+use crate::coords;
 
 extern crate bcrypt;
 
@@ -20,10 +21,19 @@ struct Claims {
 }
 
 #[derive(Serialize, Deserialize)]
-struct LastLocation {
-    lat: f64,
-    long: f64,
-    distance: f64,
+pub struct Location {
+    pub lat: f64,
+    pub long: f64,
+    pub distance: f64,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CurrentLocation {
+    pub lat: f64,
+    pub long: f64,
+    pub radius: f64,
+    pub power: String,
+    pub artifact: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -122,7 +132,7 @@ pub fn get_last_location(username: &str) -> Result<String, Error> {
     let lat: Option<f64> = row.get("lat");
     let long: Option<f64> = row.get("long");
     if distance.is_some() {
-        let result = LastLocation {
+        let result = Location {
             lat: lat.unwrap(),
             long: long.unwrap(),
             distance: distance.unwrap(),
@@ -183,11 +193,52 @@ pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
             if valid {
                 Ok(token)
             } else {
-                return Ok("Invalid password".to_string())
+                Ok("Invalid password".to_string())
             }
         }
         None => {
-            return Ok("Username does not exist".to_string())
+            Ok("Username does not exist".to_string())
         },
     }
+}
+
+pub fn validate_location(username: &str, current_location: Json<CurrentLocation>) -> Result<String, Error> {
+    let last_location = get_last_location(username).unwrap();
+    let last_location: Location = serde_json::from_str(&last_location).unwrap();
+    let current_location = CurrentLocation {
+        lat: current_location.lat,
+        long: current_location.long,
+        radius: current_location.radius,
+        power: current_location.power.clone(),
+        artifact: current_location.artifact.clone(),
+    };
+    let is_valid = check_distance(&last_location, &current_location);
+    if is_valid {
+        let xp_to_add = calculate_xp(&last_location, &current_location);
+        add_xp(&username, xp_to_add);
+    } else {
+        return Ok("You are too far away to validate the point, please move closer".to_string())
+    }
+    Ok("Validated".to_string())
+}
+
+fn check_distance(last_location: &Location, current_location: &CurrentLocation) -> bool {
+    let distance = coords::calculate_distance(last_location, current_location);
+    if distance <= current_location.radius {
+        true 
+    } else {
+        false
+    }
+}
+
+fn calculate_xp(last_location: &Location, current_location: &CurrentLocation) -> i32 {
+    let distance = last_location.distance;
+    let power = current_location.power.parse::<f64>().unwrap() / 10.0;
+    let artifact = if current_location.artifact == "Arfifact found!" {
+       1.5 
+    } else {
+        1.0
+    };
+    let xp_to_add = (distance * power * artifact) as i32;
+    xp_to_add
 }

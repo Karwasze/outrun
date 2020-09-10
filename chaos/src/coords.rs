@@ -4,9 +4,10 @@ use serde::{Deserialize, Serialize};
 use std::f64::consts;
 use crate::parameters;
 use crate::parameters::Parameters;
+use crate::db;
 const EARTH_RADIUS: f64 = 6371000.0;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Coords {
     pub lat: f64,
     pub long: f64,
@@ -18,6 +19,27 @@ struct ResultCoords {
     parameters: Parameters,
 }
 
+pub fn calculate_distance(last_location: &db::Location, current_location: &db::CurrentLocation) -> f64 {
+    let last_location = Coords {
+        lat: last_location.lat.to_radians(),
+        long: last_location.long.to_radians(),
+    };
+    
+    let current_location = Coords {
+        lat: current_location.lat.to_radians(),
+        long: current_location.long.to_radians(),
+    };
+
+    let delta = Coords {
+        lat:  ((current_location.lat - last_location.lat) / 2.0).sin(),
+        long: ((current_location.long - last_location.long) / 2.0).sin()
+    };
+
+    let a = delta.lat * delta.lat + delta.long * delta.long * (last_location.lat).cos() * (current_location.lat).cos();
+    
+    let result = EARTH_RADIUS * 2.0 * (a.sqrt()).atan2((1.0 - a).sqrt());
+    result    
+}
 pub fn point_at_distance(coords: Coords, distance: f64) -> Coords {
     let mut rng = rand::thread_rng();
 
