@@ -215,11 +215,12 @@ pub fn validate_location(username: &str, current_location: Json<CurrentLocation>
     let is_valid = check_distance(&last_location, &current_location);
     if is_valid {
         let xp_to_add = calculate_xp(&last_location, &current_location);
-        add_xp(&username, xp_to_add);
+        add_xp(&username, xp_to_add)?;
+        return Ok(format!("Point validated, xp added: {}", xp_to_add))
     } else {
         return Ok("You are too far away to validate the point, please move closer".to_string())
     }
-    Ok("Validated".to_string())
+    
 }
 
 fn check_distance(last_location: &Location, current_location: &CurrentLocation) -> bool {

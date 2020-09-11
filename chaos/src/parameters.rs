@@ -69,7 +69,7 @@ pub fn generate_parameters() -> Parameters {
     let song = spotify::generate_song();
     Parameters {
         name: name,
-        radius: rng.gen_range(1, 201),
+        radius: rng.gen_range(50, 301),
         power: power.to_string(),
         artifact: artifact.to_string(),
         song: song,

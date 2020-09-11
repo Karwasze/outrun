@@ -94,6 +94,5 @@ export const signUp = (dispatch) => async (data) => {
 export const signOut = (dispatch) => async (data) => {
   _removeData("username");
   _removeData("userToken");
-  _removeData("XP");
   dispatch({ type: "SIGN_OUT" });
 };

@@ -1,11 +1,9 @@
-import React from "react";
-import { Alert } from "react-native";
 import { _retrieveData, _removeData } from "./Storage.js";
 import * as Location from "expo-location";
 
 const ipAddr = "http://192.168.1.3:8000";
 
-export const getXP = () => async () => {
+export const getXP = async () => {
   const userToken = await _retrieveData("userToken");
   const username = await _retrieveData("username");
 
@@ -93,4 +91,28 @@ export const resetCoords = async () => {
   let lat = parseFloat(location["coords"]["latitude"]);
   let long = parseFloat(location["coords"]["longitude"]);
   return { lat, long };
+};
+
+export const validateLocation = async (POIparams) => {
+  const userToken = await _retrieveData("userToken");
+  const username = await _retrieveData("username");
+
+  return await fetch(
+    ipAddr +
+      "/validate_location?" +
+      new URLSearchParams({
+        username: username,
+      }),
+    {
+      method: "POST",
+      body: JSON.stringify(POIparams),
+      headers: {
+        Authorization: "Bearer " + userToken,
+      },
+    }
+  )
+    .then((response) => response.text())
+    .catch((error) => {
+      console.error(error);
+    });
 };

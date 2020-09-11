@@ -7,14 +7,15 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   StyleSheet,
-  Linking,
+  Alert,
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useFocusEffect } from "@react-navigation/native";
 import MapView from "react-native-maps";
 import openMap from "react-native-open-maps";
 import Hyperlink from "react-native-hyperlink";
 import { AuthContext } from "../services/Context.js";
-import { getXP } from "../services/Api.js";
+import { getXP, validateLocation } from "../services/Api.js";
 import { _retrieveData, _storeData } from "../services/Storage.js";
 import { resetCoords, getCoords, updateCoords } from "../services/Api.js";
 
@@ -42,12 +43,8 @@ export function HomeScreen() {
 }
 
 export function PlayScreen() {
-  const { getXP } = React.useContext(AuthContext);
   const [distance, onChangeText] = React.useState("Enter distance (in meters)");
-  const [location, setLocation] = React.useState({
-    lat: 0,
-    long: 0,
-  });
+  const [location, setLocation] = React.useState(null);
   const [POI, setPOI] = React.useState(null);
   const clearTextOnFocus = true;
 
@@ -62,36 +59,36 @@ export function PlayScreen() {
     <>
       <View style={{ flex: 1 }}>
         <Text>OUTRUN</Text>
-        <MapView
-          style={styles.map}
-          region={{
-            latitude: location.lat,
-            longitude: location.long,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.0121,
-          }}
-        >
-          {location ? (
+        {location ? (
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: location.lat,
+              longitude: location.long,
+              latitudeDelta: 0.015,
+              longitudeDelta: 0.0121,
+            }}
+          >
             <MapView.Marker
               coordinate={{ latitude: location.lat, longitude: location.long }}
               title="Your current location"
             />
-          ) : (
-            <></>
-          )}
-          {POI ? (
-            <MapView.Marker
-              coordinate={{
-                latitude: POI.coords.lat,
-                longitude: POI.coords.long,
-              }}
-              title="Your destination"
-              pinColor="#dd1cff"
-            />
-          ) : (
-            <></>
-          )}
-        </MapView>
+            {POI ? (
+              <MapView.Marker
+                coordinate={{
+                  latitude: POI.coords.lat,
+                  longitude: POI.coords.long,
+                }}
+                title="Your destination"
+                pinColor="#dd1cff"
+              />
+            ) : (
+              <></>
+            )}
+          </MapView>
+        ) : (
+          <></>
+        )}
       </View>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={{ flex: 2 }}>
@@ -110,7 +107,15 @@ export function PlayScreen() {
               updateCoords(generatedCoords.coords, distance);
             }}
           />
-          {POI ? <POIComponents poi={POI}></POIComponents> : <></>}
+          {POI ? (
+            <POIComponents
+              poi={POI}
+              location={location}
+              setPOI={setPOI}
+            ></POIComponents>
+          ) : (
+            <></>
+          )}
         </View>
       </TouchableWithoutFeedback>
     </>
@@ -121,17 +126,10 @@ export function SettingsScreen() {
   const { signOut } = React.useContext(AuthContext);
   const [XP, setXP] = React.useState("");
 
-  React.useEffect(() => {
+  useFocusEffect(() => {
     const bootstrapAsync = async () => {
-      _retrieveData("XP").then(async (text) => {
-        if (text === undefined) {
-          let newXP = await getXP()().then((text) => text);
-          _storeData("XP", newXP);
-          setXP(newXP);
-        } else {
-          setXP(text);
-        }
-      });
+      let newXP = await getXP().then((text) => text);
+      setXP(newXP);
     };
     bootstrapAsync();
   }, []);
@@ -144,19 +142,35 @@ export function SettingsScreen() {
   );
 }
 
-function POIComponents({ poi }) {
+function POIComponents({ poi, setPOI, location }) {
+  const parseValidationResponse = async () => {
+    const POIparams = {
+      lat: location.lat,
+      long: location.long,
+      radius: poi.parameters.radius,
+      power: poi.parameters.power,
+      artifact: poi.parameters.artifact,
+    };
+    response = await validateLocation(POIparams);
+    Alert.alert("Validation", response, [{ text: "OK" }], {
+      cancelable: false,
+    });
+    if (response.split(" ")[0] == "Point") {
+      setPOI(null);
+    }
+  };
   return (
     <>
       <Button
         title="Open in Apple Maps"
-        onPress={() =>
+        onPress={() => {
           openMap({
-            latitude: POI.lat,
-            longitude: POI.long,
+            latitude: poi.coords.lat,
+            longitude: poi.coords.long,
             provider: "apple",
-            query: `${POI.lat} , ${POI.long}`,
-          })
-        }
+            query: `${poi.coords.lat} , ${poi.coords.long}`,
+          });
+        }}
       />
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>Parameters</Text>
@@ -167,7 +181,10 @@ function POIComponents({ poi }) {
         <Hyperlink linkDefault={true} linkStyle={{ color: "blue" }}>
           <Text>Song: {poi.parameters.song}</Text>
         </Hyperlink>
-        <Button title="Validate point" />
+        <Button
+          title="Validate point"
+          onPress={async () => await parseValidationResponse()}
+        />
       </View>
     </>
   );
