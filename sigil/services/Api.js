@@ -1,4 +1,4 @@
-import { _retrieveData, _removeData } from "./Storage.js";
+import { _retrieveData, _removeData, _storeData } from "./Storage.js";
 import * as Location from "expo-location";
 
 const ipAddr = "http://192.168.1.3:8000";
@@ -60,16 +60,13 @@ export const getCoords = async (location, distance) => {
 };
 
 export const updateCoords = async (location, distance) => {
-  const userToken = await _retrieveData("userToken");
   const username = await _retrieveData("username");
   return await fetch(
     ipAddr +
       "/update_last_location?" +
       new URLSearchParams({
         username: username,
-        lat: location.lat,
-        long: location.long,
-        distance: distance,
+        coords: JSON.stringify(location),
       }),
     {
       method: "POST",

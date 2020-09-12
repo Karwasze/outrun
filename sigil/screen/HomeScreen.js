@@ -16,7 +16,7 @@ import openMap from "react-native-open-maps";
 import Hyperlink from "react-native-hyperlink";
 import { AuthContext } from "../services/Context.js";
 import { getXP, validateLocation } from "../services/Api.js";
-import { _retrieveData, _storeData } from "../services/Storage.js";
+import { _retrieveData, _storeData, _removeData } from "../services/Storage.js";
 import { resetCoords, getCoords, updateCoords } from "../services/Api.js";
 
 const styles = StyleSheet.create({
@@ -104,7 +104,7 @@ export function PlayScreen() {
             onPress={async () => {
               const generatedCoords = await getCoords(location, distance);
               setPOI(generatedCoords, distance);
-              updateCoords(generatedCoords.coords, distance);
+              updateCoords(generatedCoords, distance);
             }}
           />
           {POI ? (
@@ -144,13 +144,18 @@ export function SettingsScreen() {
 
 function POIComponents({ poi, setPOI, location }) {
   const parseValidationResponse = async () => {
-    const POIparams = {
-      lat: location.lat,
-      long: location.long,
-      radius: poi.parameters.radius,
-      power: poi.parameters.power,
-      artifact: poi.parameters.artifact,
-    };
+    const username = await _retrieveData("username");
+    console.log(await _retrieveData(username + "coords"));
+    console.log(await _retrieveData(username + "distance"));
+
+    // const POIparams = {
+    //   lat: location.lat,
+    //   long: location.long,
+    //   radius: poi.parameters.radius,
+    //   power: poi.parameters.power,
+    //   artifact: poi.parameters.artifact,
+    // };
+
     response = await validateLocation(POIparams);
     Alert.alert("Validation", response, [{ text: "OK" }], {
       cancelable: false,

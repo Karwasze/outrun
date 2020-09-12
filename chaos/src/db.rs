@@ -8,6 +8,7 @@ use rocket::request::{self, Request, FromRequest};
 use rocket::Outcome;
 use rocket::http::Status;
 use crate::coords;
+use crate::coords::ResultCoords;
 
 extern crate bcrypt;
 
@@ -25,15 +26,6 @@ pub struct Location {
     pub lat: f64,
     pub long: f64,
     pub distance: f64,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct CurrentLocation {
-    pub lat: f64,
-    pub long: f64,
-    pub radius: f64,
-    pub power: String,
-    pub artifact: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -202,16 +194,9 @@ pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
     }
 }
 
-pub fn validate_location(username: &str, current_location: Json<CurrentLocation>) -> Result<String, Error> {
+pub fn validate_location(username: &str, current_location: Json<ResultCoords>) -> Result<String, Error> {
     let last_location = get_last_location(username).unwrap();
     let last_location: Location = serde_json::from_str(&last_location).unwrap();
-    let current_location = CurrentLocation {
-        lat: current_location.lat,
-        long: current_location.long,
-        radius: current_location.radius,
-        power: current_location.power.clone(),
-        artifact: current_location.artifact.clone(),
-    };
     let is_valid = check_distance(&last_location, &current_location);
     if is_valid {
         let xp_to_add = calculate_xp(&last_location, &current_location);
@@ -223,7 +208,7 @@ pub fn validate_location(username: &str, current_location: Json<CurrentLocation>
     
 }
 
-fn check_distance(last_location: &Location, current_location: &CurrentLocation) -> bool {
+fn check_distance(last_location: &Location, current_location: &ResultCoords) -> bool {
     let distance = coords::calculate_distance(last_location, current_location);
     if distance <= current_location.radius {
         true 
@@ -232,7 +217,7 @@ fn check_distance(last_location: &Location, current_location: &CurrentLocation) 
     }
 }
 
-fn calculate_xp(last_location: &Location, current_location: &CurrentLocation) -> i32 {
+fn calculate_xp(last_location: &Location, current_location: &ResultCoords) -> i32 {
     let distance = last_location.distance;
     let power = current_location.power.parse::<f64>().unwrap() / 10.0;
     let artifact = if current_location.artifact == "Arfifact found!" {
