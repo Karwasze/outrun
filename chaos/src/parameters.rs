@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::spotify;
 
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Parameters {
     pub name: String,
     pub radius: u32,

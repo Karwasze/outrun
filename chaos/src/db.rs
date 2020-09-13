@@ -77,14 +77,12 @@ pub fn init_db() -> Result<(), Error> {
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
     client.batch_execute("
     CREATE TABLE IF NOT EXISTS users (
-        id      SERIAL PRIMARY KEY,
+        id    SERIAL PRIMARY KEY,
         username    TEXT UNIQUE,
         password    TEXT,
-        email   TEXT,
-        experience      INTEGER,
-        lat    DOUBLE PRECISION,
-        long    DOUBLE PRECISION,
-        distance    DOUBLE PRECISION
+        email    TEXT,
+        experience    INTEGER,
+        last_location    TEXT  
     )
 ")?;
     Ok(())
@@ -109,10 +107,13 @@ pub fn add_xp(username: &str, xp_amount: i32) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn update_last_location(username: &str, lat: f64, long: f64, dist: f64) -> Result<(), Error> {
+pub fn update_last_location(username: &str, current_location: Json<ResultCoords>) -> Result<(), Error> {
+    let last_location = current_location.into_inner();
+    let last_location = serde_json::to_string(&last_location).unwrap();
+    println!("{:?}", last_location);
     let mut client = Client::connect("host=localhost user=postgres dbname=outrun_testing", NoTls)?;
     client.execute(
-        "UPDATE users SET lat = $1, long = $2, distance = $3 WHERE username = $4",&[&lat, &long, &dist, &username]
+        "UPDATE users SET last_location = $1 WHERE username = $2",&[&last_location, &username]
     )?;
     Ok(())
 }
@@ -194,37 +195,37 @@ pub fn login_user(user: Json<User>) -> Result<String, Box<dyn StdError>> {
     }
 }
 
-pub fn validate_location(username: &str, current_location: Json<ResultCoords>) -> Result<String, Error> {
-    let last_location = get_last_location(username).unwrap();
-    let last_location: Location = serde_json::from_str(&last_location).unwrap();
-    let is_valid = check_distance(&last_location, &current_location);
-    if is_valid {
-        let xp_to_add = calculate_xp(&last_location, &current_location);
-        add_xp(&username, xp_to_add)?;
-        return Ok(format!("Point validated, xp added: {}", xp_to_add))
-    } else {
-        return Ok("You are too far away to validate the point, please move closer".to_string())
-    }
+// pub fn validate_location(username: &str, current_location: Json<ResultCoords>) -> Result<String, Error> {
+//     let last_location = get_last_location(username).unwrap();
+//     let last_location: Location = serde_json::from_str(&last_location).unwrap();
+//     let is_valid = check_distance(&last_location, &current_location);
+//     if is_valid {
+//         let xp_to_add = calculate_xp(&last_location, &current_location);
+//         add_xp(&username, xp_to_add)?;
+//         return Ok(format!("Point validated, xp added: {}", xp_to_add))
+//     } else {
+//         return Ok("You are too far away to validate the point, please move closer".to_string())
+//     }
     
-}
+// }
 
-fn check_distance(last_location: &Location, current_location: &ResultCoords) -> bool {
-    let distance = coords::calculate_distance(last_location, current_location);
-    if distance <= current_location.radius {
-        true 
-    } else {
-        false
-    }
-}
+// fn check_distance(last_location: &Location, current_location: &ResultCoords) -> bool {
+//     let distance = coords::calculate_distance(last_location, current_location);
+//     if distance <= current_location.radius {
+//         true 
+//     } else {
+//         false
+//     }
+// }
 
-fn calculate_xp(last_location: &Location, current_location: &ResultCoords) -> i32 {
-    let distance = last_location.distance;
-    let power = current_location.power.parse::<f64>().unwrap() / 10.0;
-    let artifact = if current_location.artifact == "Arfifact found!" {
-       1.5 
-    } else {
-        1.0
-    };
-    let xp_to_add = (distance * power * artifact) as i32;
-    xp_to_add
-}
+// fn calculate_xp(last_location: &Location, current_location: &ResultCoords) -> i32 {
+//     let distance = last_location.distance;
+//     let power = current_location.power.parse::<f64>().unwrap() / 10.0;
+//     let artifact = if current_location.artifact == "Arfifact found!" {
+//        1.5 
+//     } else {
+//         1.0
+//     };
+//     let xp_to_add = (distance * power * artifact) as i32;
+//     xp_to_add
+// }

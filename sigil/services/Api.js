@@ -59,17 +59,18 @@ export const getCoords = async (location, distance) => {
   }
 };
 
-export const updateCoords = async (location, distance) => {
+export const updateCoords = async (location) => {
   const username = await _retrieveData("username");
+  const userToken = await _retrieveData("userToken");
   return await fetch(
     ipAddr +
       "/update_last_location?" +
       new URLSearchParams({
         username: username,
-        coords: JSON.stringify(location),
       }),
     {
       method: "POST",
+      body: JSON.stringify(location),
       headers: {
         Authorization: "Bearer " + userToken,
       },

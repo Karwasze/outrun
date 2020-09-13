@@ -26,6 +26,6 @@ pub fn rocket() -> Rocket {
             paths::get_last_location, 
             paths::create_user, 
             paths::login_user,
-            paths::validate_location,
+            // paths::validate_location,
             ])
 }

@@ -13,33 +13,33 @@ pub struct Coords {
     pub long: f64,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ResultCoords {
     coords: Coords,
     parameters: Parameters,
 }
 
-pub fn calculate_distance(last_location: &db::Location, current_location: &ResultCoords) -> f64 {
-    let last_location = Coords {
-        lat: last_location.lat.to_radians(),
-        long: last_location.long.to_radians(),
-    };
+// pub fn calculate_distance(last_location: &db::Location, current_location: &ResultCoords) -> f64 {
+//     let last_location = Coords {
+//         lat: last_location.lat.to_radians(),
+//         long: last_location.long.to_radians(),
+//     };
     
-    let current_location = Coords {
-        lat: current_location.coords.lat.to_radians(),
-        long: current_location.coords.long.to_radians(),
-    };
+//     let current_location = Coords {
+//         lat: current_location.coords.lat.to_radians(),
+//         long: current_location.coords.long.to_radians(),
+//     };
 
-    let delta = Coords {
-        lat:  ((current_location.coords.lat - last_location.lat) / 2.0).sin(),
-        long: ((current_location.coords.long - last_location.long) / 2.0).sin()
-    };
+//     let delta = Coords {
+//         lat:  ((current_location.coords.lat - last_location.lat) / 2.0).sin(),
+//         long: ((current_location.coords.long - last_location.long) / 2.0).sin()
+//     };
 
-    let a = delta.lat * delta.lat + delta.long * delta.long * (last_location.lat).cos() * (current_location.coords.lat).cos();
+//     let a = delta.lat * delta.lat + delta.long * delta.long * (last_location.lat).cos() * (current_location.coords.lat).cos();
     
-    let result = EARTH_RADIUS * 2.0 * (a.sqrt()).atan2((1.0 - a).sqrt());
-    result    
-}
+//     let result = EARTH_RADIUS * 2.0 * (a.sqrt()).atan2((1.0 - a).sqrt());
+//     result    
+// }
 pub fn point_at_distance(coords: Coords, distance: f64) -> Coords {
     let mut rng = rand::thread_rng();
 

@@ -103,8 +103,8 @@ export function PlayScreen() {
             title="Generate new POI"
             onPress={async () => {
               const generatedCoords = await getCoords(location, distance);
-              setPOI(generatedCoords, distance);
-              updateCoords(generatedCoords, distance);
+              setPOI(generatedCoords);
+              updateCoords(generatedCoords);
             }}
           />
           {POI ? (
@@ -147,16 +147,8 @@ function POIComponents({ poi, setPOI, location }) {
     const username = await _retrieveData("username");
     console.log(await _retrieveData(username + "coords"));
     console.log(await _retrieveData(username + "distance"));
+    response = await validateLocation(location);
 
-    // const POIparams = {
-    //   lat: location.lat,
-    //   long: location.long,
-    //   radius: poi.parameters.radius,
-    //   power: poi.parameters.power,
-    //   artifact: poi.parameters.artifact,
-    // };
-
-    response = await validateLocation(POIparams);
     Alert.alert("Validation", response, [{ text: "OK" }], {
       cancelable: false,
     });

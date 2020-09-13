@@ -43,9 +43,9 @@ pub fn get_point(lat: f64, long: f64, distance: f64, _key: db::ApiKey) -> Result
     }    
 }
 
-#[post("/update_last_location?<username>&<lat>&<long>&<distance>")]
-pub fn update_last_location(username: String, lat: f64, long: f64, distance: f64, _key: db::ApiKey) -> Result<(), Status> {
-    match db::update_last_location(&username, lat, long, distance) {
+#[post("/update_last_location?<username>", data="<current_location>")]
+pub fn update_last_location(username: String, current_location: Json<ResultCoords>, _key: db::ApiKey) -> Result<(), Status> {
+    match db::update_last_location(&username, current_location) {
         Ok(()) => Ok(()),
         Err(_e) => Err(Status::new(400, "Error while updating location")),
     }
@@ -75,14 +75,14 @@ pub fn get_last_location(username: String, _key: db::ApiKey) -> Result<String, S
     }
 }
 
-#[post("/validate_location?<username>", data = "<current_location>")]
-pub fn validate_location(username: String, current_location: Json<ResultCoords>) -> Result<String, Status> {
-    match db::validate_location(&username, current_location) {
-        Ok(response) => match response.as_str() {
-            "You are too far away to validate the point, please move closer" => Err(Status::new(400, "Too far away")),
-            "Validated" => Ok("Validated".to_string()),
-            _ => Ok(response.to_string()),
-        }  
-        Err(_e) => Err(Status::new(400, "Bad request")),
-    }
-}
+// #[post("/validate_location?<username>", data = "<current_location>")]
+// pub fn validate_location(username: String, current_location: Json<ResultCoords>) -> Result<String, Status> {
+//     match db::validate_location(&username, current_location) {
+//         Ok(response) => match response.as_str() {
+//             "You are too far away to validate the point, please move closer" => Err(Status::new(400, "Too far away")),
+//             "Validated" => Ok("Validated".to_string()),
+//             _ => Ok(response.to_string()),
+//         }  
+//         Err(_e) => Err(Status::new(400, "Bad request")),
+//     }
+// }
