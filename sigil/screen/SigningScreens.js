@@ -13,23 +13,27 @@ export function SignUpScreen({ navigation }) {
   return (
     <View>
       <TextInput
+        style={{ height: 50, padding: 10 }}
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
       />
       <TextInput
+        style={{ height: 50, padding: 10 }}
         placeholder="Email (optional)"
         value={email}
         defaultValue={email}
         onChangeText={setEmail}
       />
       <TextInput
+        style={{ height: 50, padding: 10 }}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
       <TextInput
+        style={{ height: 50, padding: 10 }}
         placeholder="Repeat password"
         value={repeatPassword}
         onChangeText={setRepeatPassword}
@@ -53,13 +57,18 @@ export function SignInScreen({ navigation }) {
   const { signIn } = React.useContext(AuthContext);
 
   return (
-    <View>
+    <View style={{ paddingTop: 20 }}>
       <TextInput
+        style={{
+          height: 50,
+          padding: 10,
+        }}
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
       />
       <TextInput
+        style={{ height: 50, padding: 10 }}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}

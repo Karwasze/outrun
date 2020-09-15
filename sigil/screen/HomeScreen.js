@@ -91,9 +91,9 @@ export function PlayScreen() {
         )}
       </View>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={{ flex: 2 }}>
+        <View style={{ flex: 2, paddingVertical: 20 }}>
           <TextInput
-            style={{ height: 40, borderColor: "gray", borderWidth: 1 }}
+            style={{ height: 40, borderColor: "black", borderWidth: 2 }}
             onChangeText={(text) => onChangeText(text)}
             value={distance}
             keyboardType="numeric"
@@ -169,7 +169,13 @@ function POIComponents({ poi, setPOI, location }) {
           });
         }}
       />
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          paddingVertical: 10,
+          alignItems: "center",
+        }}
+      >
         <Text>Parameters</Text>
         <Text style={{ textAlign: "left" }}>Name: {poi.parameters.name} </Text>
         <Text>Radius: {poi.parameters.radius}m </Text>
