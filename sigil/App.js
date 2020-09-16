@@ -58,7 +58,7 @@ export default function App({ navigation }) {
                 name="SignIn"
                 component={SignInScreen}
                 options={{
-                  title: "Sign in",
+                  title: "Welcome to OUTRUN",
                   animationTypeForReplace: state.isSignout ? "pop" : "push",
                 }}
               />

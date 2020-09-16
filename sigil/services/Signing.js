@@ -22,7 +22,6 @@ export const signIn = (dispatch) => async (data) => {
   })
     .then((response) => {
       if (!response.ok) {
-        console.log(response.text());
         Alert.alert("Login failed!", "Try again", [{ text: "OK" }], {
           cancelable: false,
         });
@@ -72,7 +71,6 @@ export const signUp = (dispatch) => async (data) => {
   })
     .then((response) => {
       if (!response.ok) {
-        console.log(response.text());
         Alert.alert("Sign up failed!", "Try again", [{ text: "OK" }], {
           cancelable: false,
         });

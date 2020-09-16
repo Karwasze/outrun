@@ -144,11 +144,10 @@ export function SettingsScreen() {
 
 function POIComponents({ poi, setPOI, location }) {
   const parseValidationResponse = async () => {
-    const username = await _retrieveData("username");
-    console.log(await _retrieveData(username + "coords"));
-    console.log(await _retrieveData(username + "distance"));
-    response = await validateLocation(location);
-
+    const location_for_request = location;
+    location_for_request["distance"] = 0;
+    const response = await validateLocation(location_for_request);
+    console.log("response", response);
     Alert.alert("Validation", response, [{ text: "OK" }], {
       cancelable: false,
     });

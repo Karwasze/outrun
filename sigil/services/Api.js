@@ -109,7 +109,13 @@ export const validateLocation = async (POIparams) => {
       },
     }
   )
-    .then((response) => response.text())
+    .then((response) => {
+      if (!response.ok) {
+        return "Try moving closer to the point";
+      } else {
+        return response;
+      }
+    })
     .catch((error) => {
       console.error(error);
     });
