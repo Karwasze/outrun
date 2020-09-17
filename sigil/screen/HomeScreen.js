@@ -102,6 +102,7 @@ export function PlayScreen() {
           <Button
             title="Generate new POI"
             onPress={async () => {
+              Keyboard.dismiss();
               const generatedCoords = await getCoords(location, distance);
               setPOI(generatedCoords);
               updateCoords(generatedCoords);
@@ -147,11 +148,10 @@ function POIComponents({ poi, setPOI, location }) {
     const location_for_request = location;
     location_for_request["distance"] = 0;
     const response = await validateLocation(location_for_request);
-    console.log("response", response);
-    Alert.alert("Validation", response, [{ text: "OK" }], {
-      cancelable: false,
-    });
-    if (response.split(" ")[0] == "Point") {
+    if (response) {
+      Alert.alert("Point reached", response, [{ text: "OK" }], {
+        cancelable: false,
+      });
       setPOI(null);
     }
   };

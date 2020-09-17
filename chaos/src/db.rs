@@ -181,7 +181,7 @@ pub fn validate_location(username: &str, current_location: Json<Coords>) -> Resu
     if is_valid {
         let xp_to_add = calculate_xp(&last_location);
         add_xp(&username, xp_to_add)?;
-        return Ok(format!("Point validated, xp added: {}", xp_to_add))
+        return Ok(format!("Point validated, experience added: {}", xp_to_add))
     } else {
         return Ok("You are too far away to validate the point, please move closer".to_string())
     }
@@ -190,7 +190,7 @@ pub fn validate_location(username: &str, current_location: Json<Coords>) -> Resu
 
 fn check_distance(last_location: &ResultCoords, current_location: &Coords) -> bool {
     let distance = coords::calculate_distance(last_location, current_location);
-    if distance <= last_location.coords.distance {
+    if distance <= last_location.parameters.radius.into() {
         true 
     } else {
         false

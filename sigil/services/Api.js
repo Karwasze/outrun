@@ -1,5 +1,7 @@
+import { Alert } from "react-native";
 import { _retrieveData, _removeData, _storeData } from "./Storage.js";
 import * as Location from "expo-location";
+import { defaultState } from "./Reducer.js";
 
 const ipAddr = "http://192.168.1.3:8000";
 
@@ -110,10 +112,28 @@ export const validateLocation = async (POIparams) => {
     }
   )
     .then((response) => {
-      if (!response.ok) {
-        return "Try moving closer to the point";
+      if (response.status === 200) {
+        return response.text();
+      } else if (response.status === 400) {
+        Alert.alert(
+          "Validation failed",
+          "You are too far away. Try moving closer to the point.",
+          [{ text: "OK" }],
+          {
+            cancelable: false,
+          }
+        );
+        return;
       } else {
-        return response;
+        Alert.alert(
+          "Validation",
+          "Error while processing your location, please try again.",
+          [{ text: "OK" }],
+          {
+            cancelable: false,
+          }
+        );
+        return;
       }
     })
     .catch((error) => {
