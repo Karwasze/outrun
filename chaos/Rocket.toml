@@ -1,2 +1,18 @@
 [global]
 address = "192.168.1.3"
+
+[development]
+address = "localhost"
+port = 8000
+workers = 4
+keep_alive = 5
+log = "normal"
+limits = { forms = 32768 }
+
+[production]
+address = "13.93.85.43"
+port = 8000
+workers = 4
+keep_alive = 5
+log = "normal"
+limits = { forms = 32768 }
