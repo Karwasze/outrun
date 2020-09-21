@@ -9,6 +9,10 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+defaults:
+  run:
+    working-directory: chaos
+
 jobs:
   check:
     name: Rust project
@@ -22,7 +26,6 @@ jobs:
             override: true
             components: rustfmt, clippy
             
-      - run: cd chaos
       - uses: actions/checkout@v2
       - name: Build
         run: cargo build --release --verbose
