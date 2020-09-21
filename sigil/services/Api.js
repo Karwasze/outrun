@@ -1,14 +1,12 @@
 import { Alert } from "react-native";
 import { _retrieveData, _removeData, _storeData } from "./Storage.js";
 import * as Location from "expo-location";
-import { defaultState } from "./Reducer.js";
-
-const ipAddr = "http://192.168.1.3:8000";
+import { ipAddr } from "./Config.js";
 
 export const getXP = async () => {
   const userToken = await _retrieveData("userToken");
   const username = await _retrieveData("username");
-
+  console.log("GETXP", ipAddr);
   return await fetch(
     ipAddr +
       "/get_xp?" +
