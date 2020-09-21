@@ -14,7 +14,6 @@ jobs:
     name: Rust project
     runs-on: ubuntu-latest
     steps:
-      - run: cd chaos
       - uses: actions/checkout@v2
       - name: Install latest nightly
         uses: actions-rs/toolchain@v1
@@ -22,6 +21,8 @@ jobs:
             toolchain: nightly
             override: true
             components: rustfmt, clippy
+            
+      - run: cd chaos
       - uses: actions/checkout@v2
       - name: Build
         run: cargo build --release --verbose
