@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/checkout@v2
       - name: Build
-        run: cargo build --release --verbose
+        run: ROCKET_ENV=prod cargo build --release
       - name: Run tests
         run: cargo test --verbose
       - name: Upload artifact

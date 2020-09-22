@@ -1,8 +1,5 @@
-[global]
-address = "192.168.1.3"
-
 [development]
-address = "localhost"
+address = "192.168.1.3"
 port = 8000
 workers = 4
 keep_alive = 5
